@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La balance des hormones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF8F1; --ink:#222;
+  --red:#E4572E; --redT:#A9360F; --redBg:#FFF3EE;
+  --green:#3E9E6A; --greenT:#21653F; --greenBg:#F0F9F3;
+  --yellow:#FFD23F; --blue:#4F9FD8; --blueT:#1F6297; --pink:#F3A79B; --gold:#D9A400;
+  --hand:'Patrick Hand','Segoe Print','Comic Sans MS','Chalkboard SE',system-ui,sans-serif;
+  --title:'Caveat','Segoe Print','Comic Sans MS','Chalkboard SE',cursive;
+  --rough:255px 14px 225px 14px / 14px 225px 14px 255px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--hand);font-size:16px}
+body{overflow-x:hidden}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.hl{background:linear-gradient(100deg,transparent 1%,rgba(255,210,63,.95) 2.5%,rgba(255,210,63,.85) 97%,transparent 99%) 0 88%/100% 48% no-repeat;padding:0 .18em}
+.r{color:var(--redT);fill:var(--redT)} .g{color:var(--greenT);fill:var(--greenT)} .b{color:var(--blueT)}
+.feutre{filter:url(#feutre)}
+
+#app{display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;padding:10px 16px 6px}
+h1{font-family:var(--title);font-weight:700;font-size:38px;margin:0;line-height:1}
+.modes{display:inline-flex;border:2px solid var(--ink);border-radius:var(--rough);overflow:hidden;background:#fff}
+.modes button{background:transparent;border:0;padding:5px 16px;font-size:18px;cursor:pointer}
+.modes button+button{border-left:2px solid var(--ink)}
+.modes button[aria-pressed="true"]{background:var(--yellow)}
+main{display:grid;gap:12px;padding:0 16px;grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"stage" "story" "tray" "body"}
+#tray{grid-area:tray;min-width:0}
+#stage{grid-area:stage;position:relative;min-width:0}
+#story{grid-area:story;min-width:0;display:flex;flex-direction:column}
+#body{grid-area:body;min-width:0;display:flex;flex-direction:column;gap:10px}
+footer{display:flex;align-items:center;gap:12px;padding:8px 16px 12px;font-size:14px}
+.btn{background:#fff;border:2px solid var(--ink);border-radius:var(--rough);padding:4px 14px;cursor:pointer;font-size:16px}
+.btn:hover{background:#FFF6CF}
+.btn[disabled]{opacity:.4;cursor:default}
+.btn.main{background:var(--yellow)}
+
+/* ---------- Fit 16:9 ---------- */
+html.fit,html.fit body{height:100%;overflow:hidden}
+html.fit #app{position:absolute;left:50%;top:50%;width:1280px;height:720px;min-height:0;transform:translate(-50%,-50%) scale(var(--s,1))}
+html.fit header{height:58px;padding:0 18px;flex-wrap:nowrap}
+html.fit main{flex:1;min-height:0;padding:0 14px;grid-template-columns:320px minmax(0,1fr) 370px;
+  grid-template-rows:auto minmax(0,1fr);grid-template-areas:"tray stage body" "tray story body"}
+html.fit footer{height:32px;padding:0 18px}
+html.fit #story{min-height:0}
+html.fit #tray,html.fit #body{min-height:0}
+
+/* ---------- Flow (petits écrans, portrait) ---------- */
+html:not(.fit) #stage{position:sticky;top:0;z-index:5;background:var(--paper);padding-bottom:4px;box-shadow:0 6px 8px -8px rgba(0,0,0,.25)}
+html:not(.fit) #balance{max-height:36vh}
+html:not(.fit)[data-mode="decouvrir"] main{grid-template-areas:"stage" "story" "body" "tray"}
+@media (min-width:760px){
+  html:not(.fit) main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"stage stage" "story story" "tray body"}
+  html:not(.fit)[data-mode="decouvrir"] main{grid-template-areas:"stage stage" "story story" "body tray"}
+}
+
+/* ---------- Tray ---------- */
+.tray-note{font-size:13px;margin:0 0 4px;color:#555}
+.group h3{font-family:var(--title);font-weight:700;font-size:21px;margin:2px 0 3px;display:flex;align-items:center;gap:6px;line-height:1.1}
+.group h3 svg{width:22px;height:22px;flex:none}
+.group+.group{margin-top:4px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.card{position:relative;display:flex;align-items:center;gap:6px;text-align:left;background:#fff;border:2px solid var(--ink);
+  border-radius:14px 5px 14px 5px / 5px 14px 5px 14px;padding:3px 8px 3px 5px;min-height:44px;cursor:grab;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:opacity .2s,background .2s}
+.card.wide{grid-column:span 2}
+.card .ic{width:30px;height:30px;flex:none}
+.card .lbl{flex:1;font-size:14.5px;line-height:1.12}
+.card .lbl small{display:block;font-size:12.5px;color:#444}
+.card .wt{display:flex;flex-direction:column;gap:2px;flex:none}
+.card .wt i{display:block;width:6px;height:6px;border-radius:50%;background:currentColor}
+.card .badge{position:absolute;left:23px;bottom:1px;width:15px;height:15px;background:#fff;border-radius:50%}
+.g-alerte{border-color:var(--red);background:var(--redBg);color:var(--ink)} .g-alerte .wt{color:var(--red)}
+.g-tete,.g-corps{border-color:var(--green);background:var(--greenBg)} .g-tete .wt,.g-corps .wt{color:var(--green)}
+.card:hover:not([disabled]){filter:brightness(.97)}
+.card[disabled]{cursor:default}
+.card.placed{opacity:.5;border-style:dashed}
+.card.placed::after{content:"✓ posée";position:absolute;right:16px;top:-9px;font-size:11px;background:var(--yellow);border:1.5px solid var(--ink);border-radius:8px;padding:0 5px;line-height:15px}
+.card.pending{opacity:.35}
+.card.armed{box-shadow:0 0 0 3px var(--yellow)}
+.card.dragging{opacity:.3}
+.card.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-6px) rotate(-2deg)}40%{transform:translateX(6px) rotate(2deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.ghost{position:fixed;z-index:60;margin:0;pointer-events:none;transform-origin:50% 50%;box-shadow:0 8px 16px rgba(0,0,0,.18);opacity:1!important;border-style:solid!important}
+.ghost::after{display:none}
+
+/* ---------- Stage ---------- */
+#balance{display:block;width:100%;height:auto;overflow:visible}
+#status{margin:0;text-align:center;font-size:17px;min-height:24px;line-height:1.25;padding:0 4px}
+#status b{font-weight:normal}
+.hchar{cursor:pointer}
+.hchar:focus{outline:none}
+.hchar:focus-visible .body{stroke:var(--blue);stroke-width:4}
+.hname{font-size:12px;text-anchor:middle;fill:var(--ink)}
+.pantitle{font-family:var(--title);font-weight:700;font-size:21px;text-anchor:middle}
+.capT{font-family:var(--title);font-weight:700;font-size:22px}
+.capS{font-size:13px;fill:var(--ink)}
+.halo{opacity:0;transition:opacity .15s}
+.pan.ok .halo{opacity:.35;fill:var(--green)} .pan.bad .halo{opacity:.35;fill:var(--red)}
+.pan.target .halo{opacity:.15;fill:var(--yellow)}
+.token .pop{animation:pop .35s ease-out both;transform-box:fill-box;transform-origin:center}
+@keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.gold{opacity:0;transition:opacity .5s}
+.finale .gold{opacity:1}
+.finale .gold .spark{animation:twinkle 1.2s infinite alternate}
+@keyframes twinkle{from{opacity:.3}to{opacity:1}}
+#toast{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);background:#fff;border:2px solid var(--ink);border-radius:var(--rough);
+  padding:6px 14px;font-size:16px;max-width:90%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s;z-index:3}
+#toast.show{opacity:1}
+
+/* ---------- Story ---------- */
+.bubble{background:#fff;border:2.5px solid var(--ink);border-radius:var(--rough);padding:8px 14px 8px;display:flex;flex-direction:column;min-height:0;flex:1;position:relative}
+.bubble::before{content:"";position:absolute;top:-12px;left:50%;width:18px;height:18px;background:#fff;border-left:2.5px solid var(--ink);border-top:2.5px solid var(--ink);transform:translateX(-50%) rotate(45deg)}
+.storyHead{display:flex;align-items:baseline;gap:10px;position:relative}
+.stepNum{font-size:13px;background:var(--ink);color:#fff;border-radius:8px;padding:0 7px;flex:none}
+.storyHead h2{font-family:var(--title);font-weight:700;font-size:27px;margin:0;line-height:1.05}
+#storyText{flex:1;min-height:0;overflow:auto;font-size:15px;line-height:1.3;padding-right:4px;margin-top:2px}
+#storyText p{margin:3px 0}
+#storyText .mk{font-family:var(--title);font-weight:700;font-size:19px;padding:0 4px;border-radius:4px}
+#storyText .mk.r{background:#FDE1D7} #storyText .mk.g{background:#DDF0E4}
+#storyText .note{font-size:13.5px;background:#FFF8D6;border-left:4px solid var(--yellow);padding:2px 8px;border-radius:0 6px 6px 0}
+#storyText .key{font-size:16px;background:#FFF8D6;border-radius:6px;padding:3px 8px}
+#storyText .hlist{margin:2px 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:1px 14px}
+#storyText .tip{font-size:13.5px;color:#555}
+.storyNav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.storyNav .btn{white-space:nowrap}
+@media (max-width:420px){.storyNav .btn{padding:4px 9px;font-size:15px}.dots{gap:4px}.dots button{width:12px;height:12px}}
+.dots{display:flex;gap:6px}
+.dots button{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:#fff;padding:0;cursor:pointer}
+.dots button[aria-current="step"]{background:var(--yellow)}
+#expBox{background:#fff;border:2.5px solid var(--ink);border-radius:var(--rough);padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+#expBox p{margin:0;font-size:15px;line-height:1.3}
+#expBox .small{font-size:13px;color:#555}
+#expBox .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ---------- Body panel ---------- */
+.panel{background:#fff;border:2px solid var(--ink);border-radius:var(--rough);padding:4px 10px 6px;min-width:0}
+.panel h2{font-family:var(--title);font-weight:700;font-size:22px;margin:0 0 2px;line-height:1.1}
+.gauge{display:grid;grid-template-columns:96px 1fr 62px;align-items:center;gap:6px;height:25px}
+.gname{background:none;border:0;padding:0 2px;text-align:left;cursor:pointer;font-size:15px;text-decoration:underline dotted 1.5px;text-underline-offset:3px}
+.bar{height:13px;border:2px solid var(--ink);border-radius:8px 3px 8px 3px;background:#fff;overflow:hidden;position:relative}
+.bar .fill{height:100%;width:30%;border-radius:0 6px 6px 0}
+.gauge .tag{font-size:12.5px;display:flex;align-items:center;gap:3px;opacity:0;transition:opacity .3s}
+.gauge.braked .tag,.gauge.energy .tag{opacity:1}
+.gauge.braked .bar{background:repeating-linear-gradient(-45deg,#fff 0 4px,#FBE0D6 4px 8px)}
+.gauge.energy .fill{background:linear-gradient(90deg,var(--red),var(--gold))!important}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row2 .panel{display:flex;flex-direction:column}
+#woman,#uterus,#trace{display:block;width:100%;height:auto}
+.cap{margin:0;text-align:center;font-size:14.5px;min-height:19px}
+.legend{margin:0;font-size:12px;text-align:center;display:flex;justify-content:center;gap:10px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:3px}
+.prog-lbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:2px}
+.prog{position:relative;height:18px;border:2px solid var(--ink);border-radius:10px 4px 10px 4px;background:#fff;margin:0 12px 0 0}
+.prog .fill{position:absolute;left:0;top:0;bottom:0;width:5%;background:repeating-linear-gradient(90deg,#8FD0A6 0 10px,#7CC497 10px 20px);border-radius:8px 2px 2px 8px}
+.prog .baby{position:absolute;top:50%;width:26px;height:26px;transform:translate(-50%,-50%)}
+.prog-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;min-height:30px}
+#progState{font-size:14.5px}
+.nora{display:flex;align-items:center;gap:4px;background:#EAF4FC;border:2px solid var(--blue);border-radius:16px;padding:1px 10px 1px 4px;cursor:pointer;font-size:14px;animation:glow 1.6s infinite alternate}
+.nora svg{width:24px;height:24px}
+@keyframes glow{from{box-shadow:0 0 0 0 rgba(79,159,216,.0)}to{box-shadow:0 0 0 5px rgba(79,159,216,.35)}}
+.zhi{opacity:0}
+.zhi.flash{animation:zflash 1.6s ease-out}
+@keyframes zflash{0%{opacity:0;fill:#FFD23F}20%{opacity:.9;fill:#FFD23F}65%{opacity:.7;fill:#9FD8B4}100%{opacity:0;fill:#9FD8B4}}
+.zlab{opacity:0;font-size:10.5px;fill:var(--ink);paint-order:stroke;stroke:#fff;stroke-width:3px}
+.zlab.flash{animation:lflash 1.9s ease-out}
+@keyframes lflash{0%,100%{opacity:0}15%,75%{opacity:1}}
+#breath circle{animation:breath 3s ease-in-out infinite}
+#breath circle:nth-child(2){animation-delay:.4s} #breath circle:nth-child(3){animation-delay:.8s}
+@keyframes breath{0%{transform:translate(0,0);opacity:.2}50%{opacity:1}100%{transform:translate(8px,-6px);opacity:.2}}
+
+/* ---------- Dialogs ---------- */
+dialog{border:2.5px solid var(--ink);border-radius:var(--rough);background:#fff;color:var(--ink);font-family:var(--hand);max-width:min(520px,92vw);padding:14px 18px;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+dialog::backdrop{background:rgba(251,248,241,.6)}
+dialog h2{font-family:var(--title);font-weight:700;font-size:30px;margin:0}
+dialog p,dialog li{font-size:16.5px;line-height:1.35}
+dialog ul{padding-left:20px;margin:8px 0}
+.fhead{display:flex;align-items:center;gap:10px}
+.fhead svg{width:46px;height:58px;flex:none}
+dialog .btn{margin-top:6px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .zhi.flash{animation:none;opacity:.6;fill:#9FD8B4}
+  .zlab.flash{animation:none;opacity:1}
+  #breath circle{animation:none;opacity:.8}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs id="defs">
+    <filter id="feutre" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="app">
+  <header>
+    <h1><span class="hl">La balance des hormones</span></h1>
+    <div class="modes" role="group" aria-label="Mode d'utilisation">
+      <button type="button" data-mode="decouvrir" aria-pressed="true">Découvrir</button>
+      <button type="button" data-mode="experimenter" aria-pressed="false">Expérimenter</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="tray" aria-label="Cartes à poser sur la balance">
+      <p class="tray-note" id="trayNote">Visite guidée : les cartes se posent toutes seules.</p>
+      <div id="groups"></div>
+    </section>
+
+    <section id="stage" aria-label="La balance">
+      <svg id="balance" viewBox="0 0 540 330" aria-labelledby="balT">
+        <title id="balT">Balance à deux plateaux : alerte à gauche, accouchement à droite</title>
+        <g id="ring" opacity=".42">
+          <g id="ringRot"></g>
+        </g>
+        <g text-anchor="middle">
+          <g id="capVic" opacity="0"><text x="270" y="19" class="capT r">Cercle vicieux</text><text x="270" y="36" class="capS">peur → tension → douleur → peur</text></g>
+          <g id="capVer" opacity="0"><text x="270" y="19" class="capT g">Cercle vertueux</text><text x="270" y="36" class="capS">ocytocine → endorphines → lâcher-prise → ouverture</text></g>
+        </g>
+        <g class="feutre" stroke="#222" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M270 100V305" stroke-width="7" fill="none"/>
+          <path d="M262 108h16" stroke-width="3"/>
+          <path d="M222 320h96l-14-15h-68z" fill="#fff" stroke-width="3"/>
+          <path d="M262 82l8-14 8 14z" fill="#FFD23F" stroke-width="2.5"/>
+        </g>
+        <g id="beam">
+          <g class="feutre" stroke="#222" stroke-linecap="round" fill="none">
+            <path d="M100 95H440" stroke-width="7"/>
+            <path d="M140 95q130-18 260 0" stroke-width="2"/>
+            <path d="M118 88v14M422 88v14" stroke-width="2.5"/>
+            <circle cx="100" cy="95" r="4" fill="#fff" stroke-width="2.5"/>
+            <circle cx="440" cy="95" r="4" fill="#fff" stroke-width="2.5"/>
+          </g>
+        </g>
+        <circle cx="270" cy="95" r="9" fill="#FFD23F" stroke="#222" stroke-width="3"/>
+        <g id="panL" class="pan"></g>
+        <g id="panR" class="pan"></g>
+      </svg>
+      <p id="status"></p>
+      <div id="toast" aria-hidden="true"></div>
+    </section>
+
+    <section id="story" aria-label="Explications">
+      <div id="storyBox" class="bubble">
+        <div class="storyHead"><span class="stepNum" id="stepNum">1 / 6</span><h2 id="storyTitle"></h2></div>
+        <div id="storyText" tabindex="0" aria-live="polite"></div>
+        <nav class="storyNav" aria-label="Étapes de la visite">
+          <button type="button" class="btn" id="prev">← Précédent</button>
+          <div class="dots" id="dots"></div>
+          <button type="button" class="btn main" id="next">Suivant →</button>
+        </nav>
+      </div>
+      <div id="expBox" hidden>
+        <p>Glisse une carte sur <b>son</b> plateau, ou clique dessus (ou Entrée). Un second clic la retire.</p>
+        <div class="row"><button type="button" class="btn" id="reset">Vider la balance</button></div>
+        <p class="small">Illustration simplifiée : les poids et les niveaux ne sont pas des mesures réelles.</p>
+      </div>
+    </section>
+
+    <section id="body" aria-label="Ce qui se passe dans le corps">
+      <div class="panel">
+        <h2><span class="hl">Les hormones</span></h2>
+        <div id="gauges"></div>
+      </div>
+      <div class="row2">
+        <div class="panel">
+          <h2><span class="hl">La femme</span></h2>
+          <svg id="woman" viewBox="0 0 170 200" role="img" aria-labelledby="womanCap">
+            <g id="zones"></g>
+            <g class="feutre" fill="none" stroke="#222" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M84 140C82 160 84 178 84 192h-9"/>
+              <path d="M103 144C105 162 106 178 106 192h10"/>
+              <path d="M80 70C74 92 76 120 82 142C90 149 101 149 108 142C134 133 137 100 111 92C107 84 105 74 99 66" fill="#FDF0EA"/>
+              <path d="M87 53v13M97 54v11"/>
+              <path d="M92 17a19 19 0 1 1-.1 0z" fill="#FDF0EA"/>
+              <path d="M110 33l4 7-4 1.5"/>
+              <path d="M74 44C67 21 90 9 107 22C98 22 90 26 86 32C81 38 82 49 78 56Z" fill="#6B5444" stroke-width="2"/>
+              <circle cx="72" cy="30" r="7" fill="#6B5444" stroke-width="2"/>
+              <g id="shoulders"><path d="M77 73Q86 64 99 66" stroke-width="3"/><path d="M86 74C83 92 88 108 98 116C104 120 112 120 117 116"/></g>
+            </g>
+            <g fill="none" stroke="#222" stroke-width="2" stroke-linecap="round">
+              <path id="brow" d="M98 27L107 29"/>
+              <circle id="eyeO" cx="103" cy="34" r="1.9" fill="#222" stroke="none"/>
+              <path id="eyeC" d="M100 34q3 2.6 6 0"/>
+              <path id="mouth" d="M101 48Q105 50 109 48"/>
+              <path id="clench" d="M100.5 48l2-1.6 2 1.6 2-1.6 2 1.6" stroke="#E4572E" stroke-width="1.5"/>
+            </g>
+            <g fill="none" stroke="#E4572E" stroke-width="2" stroke-linecap="round">
+              <path class="tl" d="M115 53l6-2M116 58l6 1"/>
+              <path class="tl" d="M74 62l-3-6M80 58l-1-7M87 58l1-6"/>
+              <path class="tl" d="M139 104l6-2M141 112h6M139 120l6 2"/>
+              <path class="tl" d="M73 127l-6-1M72 135h-6M73 143l-6 1"/>
+              <path class="tl" d="M88 157l2 5M94 158v6M100 157l-2 5"/>
+            </g>
+            <g id="breath" fill="#CFE5F6" stroke="#4F9FD8" stroke-width="1.5">
+              <circle cx="119" cy="47" r="2.5"/><circle cx="126" cy="43" r="3.2"/><circle cx="134" cy="38" r="4"/>
+            </g>
+            <g id="zlabs"></g>
+          </svg>
+          <p class="cap" id="womanCap">Un peu tendue</p>
+        </div>
+        <div class="panel">
+          <h2><span class="hl">L'utérus</span></h2>
+          <svg id="uterus" viewBox="0 0 170 116" role="img" aria-labelledby="uCap">
+            <g class="feutre" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round">
+              <path d="M52 28q-16-9-30 1"/><path d="M118 28q16-9 30 1"/>
+              <ellipse cx="20" cy="34" rx="6" ry="5" fill="#F9D3CC"/><ellipse cx="150" cy="34" rx="6" ry="5" fill="#F9D3CC"/>
+            </g>
+            <g id="uWavesR" fill="none" stroke="#E4572E" stroke-width="2.6" stroke-linecap="round" opacity="0">
+              <path d="M38 42q-8 20 0 40M30 38q-10 24 0 48"/><path d="M132 42q8 20 0 40M140 38q10 24 0 48"/>
+            </g>
+            <g id="uWavesB" fill="none" stroke="#4F9FD8" stroke-width="2.2" stroke-linecap="round" opacity="0">
+              <path d="M6 66q5-5 10 0t10 0"/><path d="M144 66q5-5 10 0t10 0"/><path d="M60 112q6-4 12 0t12 0 12 0 12 0" />
+            </g>
+            <g id="uG">
+              <g class="feutre">
+                <path id="uShape" d="M85 12C120 12 130 36 124 58C119 76 102 84 95 92L95 104L75 104L75 92C68 84 51 76 46 58C40 36 50 12 85 12Z" fill="#F3A79B" stroke="#222" stroke-width="3"/>
+                <path d="M85 24C110 24 116 40 112 56C108 70 96 76 89 84L81 84C74 76 62 70 58 56C54 40 60 24 85 24Z" fill="#FBE0D8" stroke="#222" stroke-width="1.5"/>
+              </g>
+              <g id="baby"><circle cx="85" cy="56" r="14" fill="#FDF0EA" stroke="#222" stroke-width="2"/><path d="M78 48q4-4 8-1" stroke="#222" stroke-width="1.6" fill="none"/></g>
+            </g>
+          </svg>
+          <svg id="trace" viewBox="0 0 170 44" aria-hidden="true">
+            <path d="M0 40.5H170" stroke="#ccc" stroke-width="1"/>
+            <path id="trR" fill="none" stroke="#E4572E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path id="trB" fill="none" stroke="#4F9FD8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p class="cap" id="uCap"><span id="uPhase" class="b">détente</span></p>
+          <p class="legend"><span><i style="background:#E4572E"></i>contraction</span><span><i style="background:#4F9FD8"></i>détente</span></p>
+        </div>
+      </div>
+      <div class="panel">
+        <h2><span class="hl">Le travail avance ?</span></h2>
+        <div class="prog-lbl"><span>ouverture du col / descente du bébé</span></div>
+        <div class="prog" role="progressbar" aria-label="Ouverture du col et descente du bébé" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5" id="progBar">
+          <div class="fill" id="progFill"></div>
+          <svg class="baby" id="progBaby" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="10" fill="#FDF0EA" stroke="#222" stroke-width="2"/><path d="M9 12q1 1.4 2 0M15 12q1 1.4 2 0M10.5 16q2.5 2 5 0" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <div class="prog-foot"><span id="progState">Le travail avance doucement</span>
+          <button type="button" class="nora" id="nora" hidden><svg viewBox="-20 -48 40 52" aria-hidden="true" id="noraIc"></svg>noradrénaline (bébé)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <button type="button" class="btn" id="btnSources">Sources</button>
+  </footer>
+</div>
+
+<p id="announce" class="sr" aria-live="polite"></p>
+
+<dialog id="fiche" aria-labelledby="ficheT">
+  <form method="dialog">
+    <div class="fhead"><svg id="ficheIc" viewBox="-24 -56 48 60" aria-hidden="true"></svg><h2 id="ficheT"></h2></div>
+    <p id="ficheX"></p>
+    <button class="btn" value="close">Fermer</button>
+  </form>
+</dialog>
+
+<dialog id="sources" aria-labelledby="srcT">
+  <form method="dialog">
+    <h2 id="srcT"><span class="hl">Sources</span></h2>
+    <ul>
+      <li>Grantly Dick-Read, le cercle peur → tension → douleur (années 1920).</li>
+      <li>Maïtie Trélaün, pour le rôle du temps de détente et le cercle vertueux ocytocine → endorphines → lâcher-prise (p. 42 et p. 45).</li>
+      <li>Illustration et métaphore de la balance : création originale.</li>
+    </ul>
+    <button class="btn" value="close">Fermer</button>
+  </form>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const rmq = matchMedia('(prefers-reduced-motion: reduce)');
+let reduced = rmq.matches;
+if (rmq.addEventListener) rmq.addEventListener('change', e => { reduced = e.matches; });
+
+/* ---------------- Pictogrammes (32×32, encre #222) ---------------- */
+const ICONS = {
+  peur: `<circle cx="16" cy="17" r="11" fill="#FBD3C6"/><path d="M10 12.5l4 1.6M22 12.5l-4 1.6"/><circle cx="12.5" cy="17" r="1.3" fill="#222" stroke="none"/><circle cx="19.5" cy="17" r="1.3" fill="#222" stroke="none"/><path d="M11 23q2.5-2 5 0t5 0"/><path d="M26 4q2.2 3.2 0 4.8q-2.2-1.6 0-4.8z" fill="#4F9FD8" stroke-width="1.5"/>`,
+  observee: `<path d="M3 16q13-12 26 0q-13 12-26 0z" fill="#fff"/><circle cx="16" cy="16" r="4.6" fill="#E4572E"/><circle cx="16" cy="16" r="1.7" fill="#222" stroke="none"/><path d="M8 8l-1.5-2M16 6V3.5M24 8l1.5-2"/>`,
+  lumiere: `<path d="M11 18.5a7 7 0 1 1 10 0q-1.5 1.5-1.5 4h-7q0-2.5-1.5-4z" fill="#FFD23F"/><path d="M13 25.5h6M14 28.5h4"/><path d="M16 3.5V1.5M5 13H3M29 13h-2M7.5 5l1.5 1.5M24.5 5L23 6.5" stroke="#E4572E"/>`,
+  bruit: `<path d="M4 12h5l7-6v20l-7-6H4z" fill="#F7C3B3"/><path d="M20 11q3 5 0 10M24 7.5q5.5 8.5 0 17" stroke="#E4572E"/>`,
+  pressee: `<circle cx="18" cy="18" r="10" fill="#fff"/><path d="M18 18l4-5M15 4h6M18 4v4M26.5 9.5l2-2"/><path d="M2 14h4M1 19h4M2 24h4" stroke="#E4572E"/>`,
+  froid: `<g stroke="#4F9FD8"><path d="M16 3v26M4.7 9.5l22.6 13M4.7 22.5l22.6-13"/><path d="M12.5 5l3.5 3 3.5-3M12.5 27l3.5-3 3.5 3"/></g>`,
+  crispes: `<path d="M6 4h20M6 28h20"/><path d="M8 7l16 3-16 3 16 3-16 3 16 3-16 3" stroke="#E4572E"/>`,
+  securite: `<path d="M5 15L16 5l11 10v12H5z" fill="#CDEBD8"/><path d="M16 24.5s-5-3-5-6.3a2.6 2.6 0 0 1 5-1 2.6 2.6 0 0 1 5 1c0 3.3-5 6.3-5 6.3z" fill="#3E9E6A"/>`,
+  respiration: `<path d="M8 21a5 5 0 0 1 1-10 7 7 0 0 1 13-1 5 5 0 0 1 2 11z" fill="#CFE5F6"/><path d="M4 27q4-2.5 8 0t8 0 8 0" stroke="#4F9FD8"/>`,
+  penombre: `<path d="M20 4a12 12 0 1 0 8 18A10 10 0 0 1 20 4z" fill="#FFE89A"/><path d="M7 6.5l1 2M4 12h2" stroke-width="1.6"/>`,
+  calme: `<path d="M25 4C15 6 9 14 8 26c8-1 15-7 17-22z" fill="#CDEBD8"/><path d="M5 29l13-16"/>`,
+  presence: `<circle cx="11" cy="10" r="4" fill="#CDEBD8"/><circle cx="21" cy="10" r="4" fill="#CDEBD8"/><path d="M4 28q0-9 7-9 4 0 5 3 1-3 5-3 7 0 7 9z" fill="#CDEBD8"/><path d="M13.5 23q2.5 2 5 0" stroke="#3E9E6A"/>`,
+  voix: `<path d="M4 6h24v14H14l-6 5v-5H4z" fill="#fff"/><path d="M16 17.5s-4-2.4-4-5a2 2 0 0 1 4-.6 2 2 0 0 1 4 .6c0 2.6-4 5-4 5z" fill="#3E9E6A"/>`,
+  machoire: `<circle cx="16" cy="12" r="8.5" fill="#CDEBD8"/><path d="M11.5 11q1.5 1.3 3 0M17.5 11q1.5 1.3 3 0M13 15.5q3 2 6 0"/><path d="M3 29q3-7 13-7t13 7"/><path d="M6 19v5l-2-2M26 19v5l2-2" stroke="#3E9E6A"/>`,
+  ventre: `<circle cx="16" cy="17" r="10" fill="#F9D3CC"/><path d="M8 18q2-2 4 0t4 0 4 0 4 0" stroke="#3E9E6A"/><path d="M11 4q5 2 10 0"/>`,
+  bouger: `<circle cx="16" cy="5.5" r="3"/><path d="M16 9v8M11 13h10M12.5 28l3.5-11 3.5 11"/><path d="M6 22q10 8 20 0" stroke="#3E9E6A"/><path d="M5 19l1 3 3 0M27 19l-1 3-3 0" stroke="#3E9E6A"/>`,
+  bain: `<path d="M3 16h26v3a7 7 0 0 1-7 7H10a7 7 0 0 1-7-7z" fill="#CFE5F6"/><path d="M8 26l-1 3M24 26l1 3"/><path d="M11 12q-2-2 0-4t0-4M16 12q-2-2 0-4t0-4M21 12q-2-2 0-4t0-4" stroke="#F08A5D"/>`,
+  massage: `<path d="M5 25V14q0-2 2-2t2 2v-3q0-2 2-2t2 2v1q0-2 2-2t2 2v12q0 3-3 3H8q-3 0-3-3z" fill="#F9D3CC"/><path d="M22 9q4 4 0 8M25.5 6q6 7 0 14" stroke="#3E9E6A"/>`,
+  tete: `<path d="M10 28v-5a9.5 9.5 0 1 1 12.5 0v5" fill="#CDEBD8"/><path d="M12.5 13q3.5-4 7 0M14 17q2 1.5 4 0" stroke="#21653F"/>`,
+  corps: `<circle cx="16" cy="6" r="3.5" fill="#CDEBD8"/><path d="M16 10v10M9 14h14M11 29l5-9 5 9" stroke-width="2.4"/>`,
+  alerte: `<path d="M16 4L29 27H3z" fill="#FBD3C6"/><path d="M16 12v7M16 23v.5" stroke-width="2.6"/>`
+};
+
+/* ---------------- Personnages-hormones ---------------- */
+const DROP = 'M0,-44 C7,-33 17,-23 17,-13 C17,-4 9,1 0,1 C-9,1 -17,-4 -17,-13 C-17,-23 -7,-33 0,-44Z';
+const CHAR = {
+  adrenaline: `<g class="gold"><path d="${DROP}" fill="none" stroke="#D9A400" stroke-width="9" opacity=".55"/><text x="0" y="-60" text-anchor="middle" font-size="13" fill="#8A6800" stroke="#fff" stroke-width="3" paint-order="stroke">énergie</text><g class="spark" fill="#FFD23F" stroke="#D9A400" stroke-width="1.2"><path d="M-27,-40l2,5 5,2-5,2-2,5-2-5-5-2 5-2z"/><path d="M26,-30l1.6,4 4,1.6-4,1.6-1.6,4-1.6-4-4-1.6 4-1.6z"/></g></g>
+    <path class="body" d="${DROP}" fill="#E4572E" stroke="#222" stroke-width="2.5"/>
+    <circle cx="-6" cy="-16" r="3.6" fill="#fff" stroke="#222" stroke-width="1.5"/><circle cx="6" cy="-16" r="3.6" fill="#fff" stroke="#222" stroke-width="1.5"/>
+    <circle cx="-6" cy="-15.5" r="1.5" fill="#222"/><circle cx="6" cy="-15.5" r="1.5" fill="#222"/>
+    <path d="M-10,-23l6,2M10,-23l-6,2" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="0" cy="-7" rx="2.4" ry="3" fill="#fff" stroke="#222" stroke-width="1.5"/>
+    <path class="alarm" d="M-22,-36l4,4M22,-36l-4,4M0,-54v5" stroke="#E4572E" stroke-width="2.4" stroke-linecap="round"/>`,
+  cortisol: `<path class="body" d="${DROP}" fill="#F2A48C" stroke="#222" stroke-width="2.5"/>
+    <circle cx="-6" cy="-15" r="1.8" fill="#222"/><circle cx="6" cy="-15" r="1.8" fill="#222"/>
+    <path d="M-10,-21.5l6,2M10,-21.5l-6,2" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-6,-7q3-2.5 6,0t6,0" fill="none" stroke="#222" stroke-width="1.8" stroke-linecap="round"/>`,
+  ocytocine: `<path class="body" d="${DROP}" fill="#3E9E6A" stroke="#222" stroke-width="2.5"/>
+    <path d="M-9,-15q2.5-3.5 5,0M4,-15q2.5-3.5 5,0" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-5.5,-8.5q5.5 5 11 0" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+    <path d="M0,-47s-6-3.5-6-7a3 3 0 0 1 6-1 3 3 0 0 1 6 1c0 3.5-6 7-6 7z" fill="#F3A79B" stroke="#222" stroke-width="1.5"/>`,
+  endorphines: `<path class="body" d="${DROP}" fill="#9AD4AE" stroke="#222" stroke-width="2.5"/>
+    <path d="M-9,-16q2.5 2.5 5,0M4,-16q2.5 2.5 5,0" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-5,-8.5q5 4.5 10,0" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="-10" cy="-10" r="2" fill="#F3A79B"/><circle cx="10" cy="-10" r="2" fill="#F3A79B"/>
+    <path d="M-23,-30l1.5,3.5 3.5,1.5-3.5,1.5-1.5,3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="#FFD23F" stroke="#222" stroke-width="1"/>`,
+  noradrenaline: `<path class="body" d="${DROP}" fill="#BFDDF3" stroke="#222" stroke-width="2.5"/>
+    <circle cx="-5.5" cy="-14" r="1.8" fill="#222"/><circle cx="5.5" cy="-14" r="1.8" fill="#222"/>
+    <path d="M-4,-7.5q4 3 8,0" fill="none" stroke="#222" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M-2,-38q3-4 5,1" fill="none" stroke="#222" stroke-width="1.8" stroke-linecap="round"/>`
+};
+
+/* ---------------- Textes (fournis, utilisés tels quels) ---------------- */
+const HORM = {
+  adrenaline: { name: 'Adrénaline', text: `L'adrénaline est l'hormone du stress et de l'alerte, produite par les glandes surrénales. Pendant l'accouchement, elle peut freiner les contractions si la mère a peur ou se sent en insécurité, mais un pic en fin de travail lui donne l'énergie nécessaire pour la poussée. Produite en trop grande quantité, elle inhibe l'ocytocine.`, color: '#E4572E' },
+  cortisol: { name: 'Cortisol', text: `Le cortisol, hormone du stress, augmente pendant la grossesse et l'accouchement pour fournir à la mère l'énergie nécessaire, mais un stress trop intense peut freiner le travail.`, color: '#F2A48C' },
+  ocytocine: { name: 'Ocytocine', text: `L'ocytocine, l'hormone de l'amour, déclenche entre autres les contractions utérines pendant l'accouchement. Elle provoque aussi l'éjection du lait lors de l'allaitement et favorise l'attachement entre la mère et son bébé. L'administration d'ocytocine par voie intraveineuse est utilisée pour déclencher le travail en milieu hospitalier.`, color: '#3E9E6A' },
+  endorphines: { name: 'Endorphines', text: `Les endorphines sont des antidouleurs naturels produits par le cerveau, proches de la morphine, qui atténuent la douleur des contractions et plongent la femme dans un état de détente qui l'aide à lâcher prise et à se laisser porter par le travail. Elles sont sécrétées avec l'ocytocine.`, color: '#9AD4AE' },
+  noradrenaline: { name: 'Noradrénaline', text: `La noradrénaline, hormone proche de l'adrénaline, met le corps en alerte. Chez le bébé, elle ralentit entre autres son rythme cardiaque, l'aide à respirer et active ses sens olfactifs pour le préparer à téter.`, color: '#BFDDF3' }
+};
+const TXT = {
+  vicieux: `La peur déclenche une montée d'adrénaline. L'adrénaline freine l'ocytocine, ce qui rend les contractions moins efficaces et peut ralentir le travail. Elle détourne aussi le sang vers les muscles « de fuite » plutôt que vers l'utérus. Le corps se crispe pour se protéger : les muscles du bassin et du périnée résistent à l'ouverture, et l'utérus travaille contre eux. La douleur augmente alors, ce qui renforce la peur, et le cercle recommence.`,
+  relaxation: `La relaxation, c'est l'apaisement de l'esprit : se sentir en sécurité, respirer calmement, se recentrer. Elle fait baisser l'adrénaline et le cortisol, les hormones du stress. Elle laisse ainsi le champ libre à l'ocytocine, qui fait contracter l'utérus, et aux endorphines, qui calment la douleur.`,
+  relachement: `Le relâchement est plutôt physique : détendre les muscles, en particulier ceux du ventre, du bassin, du périnée, des épaules et de la mâchoire. Un corps relâché laisse le col s'ouvrir et le bébé descendre, sans le retenir ; il économise son énergie entre les contractions ; il laisse le sang et l'oxygène circuler vers l'utérus et vers le bébé.`,
+  vertueux: `L'ocytocine entraîne la sécrétion d'endorphines, qui favorisent le lâcher-prise et l'ouverture du bassin ; l'appui de la poche des eaux sur le col stimule à son tour l'ocytocine. Le travail monte en puissance.`,
+  douleur: `La douleur n'est pas uniquement négative : elle peut aussi stimuler la production d'endorphines. Elle devient un problème surtout quand elle est vécue dans la peur et la tension.`,
+  synthese: `La relaxation agit sur la tête et les hormones, le relâchement agit sur le corps et les muscles. Les deux se renforcent l'un l'autre.`
+};
+
+/* ---------------- Cartes ---------------- */
+const CARDS = [
+  { id: 'peur', grp: 'alerte', label: 'Peur de la douleur', w: 3 },
+  { id: 'observee', grp: 'alerte', label: 'Se sentir observée', w: 2 },
+  { id: 'lumiere', grp: 'alerte', label: 'Lumière forte', w: 1 },
+  { id: 'bruit', grp: 'alerte', label: 'Bruit, agitation', w: 1 },
+  { id: 'pressee', grp: 'alerte', label: 'Se sentir pressée', w: 2 },
+  { id: 'froid', grp: 'alerte', label: 'Avoir froid', w: 1 },
+  { id: 'crispes', grp: 'alerte', label: 'Muscles crispés', sub: 'mâchoire serrée, épaules remontées', w: 2, wide: true },
+  { id: 'securite', grp: 'tete', label: 'Se sentir en sécurité', w: 3 },
+  { id: 'respiration', grp: 'tete', label: 'Respiration lente et calme', w: 2 },
+  { id: 'penombre', grp: 'tete', label: 'Pénombre, intimité', w: 1 },
+  { id: 'calme', grp: 'tete', label: 'Calme, silence', w: 1 },
+  { id: 'presence', grp: 'tete', label: 'Présence rassurante', w: 2 },
+  { id: 'voix', grp: 'tete', label: 'Voix douce, encouragements', w: 1 },
+  { id: 'machoire', grp: 'corps', label: 'Relâcher la mâchoire et les épaules', w: 2 },
+  { id: 'ventre', grp: 'corps', label: 'Ventre et périnée relâchés', w: 2 },
+  { id: 'bouger', grp: 'corps', label: 'Bouger librement, bercer le bassin', w: 2 },
+  { id: 'bain', grp: 'corps', label: 'Chaleur, bain chaud', w: 1 },
+  { id: 'massage', grp: 'corps', label: 'Massage', w: 1 }
+];
+CARDS.forEach(c => { c.side = c.grp === 'alerte' ? 'L' : 'R'; });
+const CARD = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const GROUPS = [
+  { id: 'alerte', title: 'Côté alerte', cls: 'r' },
+  { id: 'tete', title: 'Pour la tête : la relaxation', cls: 'g' },
+  { id: 'corps', title: 'Pour le corps : le relâchement', cls: 'g' }
+];
+const sideName = s => s === 'L' ? 'Alerte' : 'Accouchement';
+
+/* ---------------- Étapes du mode Découvrir ---------------- */
+const STEPS = [
+  { title: 'La balance au départ', cards: [], prog: .05,
+    html: `<p>Voici une balance des hormones. Sur le plateau <b class="r">Alerte</b>, les hormones du stress ; sur le plateau <b class="g">Accouchement</b>, celles qui font avancer le travail. Pour l'instant, elle est équilibrée.</p>
+      <ul class="hlist"><li><b class="r">Adrénaline</b> : l'hormone du stress et de l'alerte.</li><li><b class="g">Ocytocine</b> : l'hormone de l'amour, qui déclenche les contractions.</li><li><b class="r">Cortisol</b> : hormone du stress, qui fournit de l'énergie.</li><li><b class="g">Endorphines</b> : les antidouleurs naturels, sécrétés avec l'ocytocine.</li></ul>
+      <p class="tip">Clique sur un personnage ou une jauge pour lire sa fiche.</p>` },
+  { title: "La peur s'invite", cards: ['peur', 'lumiere', 'pressee'], prog: .07,
+    html: `<p><span class="mk r">Cercle vicieux</span> ${TXT.vicieux}</p><p class="note"><b>La douleur</b> : ${TXT.douleur}</p>` },
+  { title: 'La relaxation (la tête)', cards: ['securite', 'respiration', 'penombre'], prog: .14,
+    html: `<p><span class="mk g">Relaxation</span> ${TXT.relaxation}</p>` },
+  { title: 'Le relâchement (le corps)', cards: ['machoire', 'ventre', 'bouger'], prog: .42,
+    html: `<p><span class="mk g">Relâchement</span> ${TXT.relachement}</p><p class="tip">Regarde la silhouette : mâchoire, épaules, ventre, bassin, périnée se relâchent un à un.</p>` },
+  { title: 'Le cercle vertueux', cards: ['presence', 'voix'], prog: .72,
+    html: `<p><span class="mk g">Cercle vertueux</span> ${TXT.vertueux}</p><p class="key">${TXT.synthese}</p>` },
+  { title: 'Et à la toute fin ?', cards: [], prog: .95, finale: true,
+    html: `<p>La progression arrive presque au bout. Une courte et forte bouffée d'<b class="r">adrénaline</b> apparaît sur le plateau Alerte, cette fois avec un contour doré : elle ne freine plus, elle donne l'<b>énergie</b> de la poussée.</p><p>Côté bébé, la <b class="b">noradrénaline</b> s'allume : elle l'aide à respirer et à s'adapter.</p><p class="key">« Au début du travail, l'adrénaline freine. À la toute fin, elle donne l'énergie de la naissance. »</p>` }
+];
+
+/* ---------------- Construction ---------------- */
+$('#defs').insertAdjacentHTML('beforeend', Object.entries(ICONS).map(([k, v]) =>
+  `<symbol id="i-${k}" viewBox="0 0 32 32"><g fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${v}</g></symbol>`).join(''));
+
+$('#groups').innerHTML = GROUPS.map(g => `<div class="group"><h3 class="${g.cls}"><svg aria-hidden="true"><use href="#i-${g.id}"/></svg><span>${g.title}</span></h3><div class="cards">${
+  CARDS.filter(c => c.grp === g.id).map(c => `<button type="button" class="card g-${c.grp}${c.wide ? ' wide' : ''}" data-id="${c.id}" aria-pressed="false"
+    aria-label="${c.label}${c.sub ? ' : ' + c.sub : ''}. Poids ${c.w}. Plateau ${sideName(c.side)}.">
+    <svg class="ic" aria-hidden="true"><use href="#i-${c.id}"/></svg>
+    <span class="lbl">${c.label}${c.sub ? `<small>${c.sub}</small>` : ''}</span>
+    <span class="wt" aria-hidden="true">${'<i></i>'.repeat(c.w)}</span>
+    ${c.grp !== 'alerte' ? `<svg class="badge" aria-hidden="true"><use href="#i-${c.grp}"/></svg>` : ''}</button>`).join('')}</div></div>`).join('');
+const cardEl = Object.fromEntries($$('.card').map(b => [b.dataset.id, b]));
+
+function charSVG(h, x) {
+  return `<g class="hchar" data-h="${h}" role="button" tabindex="0" aria-label="${HORM[h].name} : ouvrir la fiche" transform="translate(${x},70)"><g class="sc">${CHAR[h]}</g></g>`;
+}
+function buildPan(side) {
+  const isL = side === 'L', g = $('#pan' + side);
+  const fill = isL ? '#FCE3DA' : '#DDF0E4', col = isL ? '#E4572E' : '#3E9E6A';
+  const ch = isL ? ['adrenaline', 'cortisol'] : ['ocytocine', 'endorphines'];
+  const bowl = 'M-88 70Q0 150 88 70Z';
+  g.innerHTML = `<clipPath id="clip${side}"><path d="${bowl}"/></clipPath>
+    <ellipse class="halo" cx="0" cy="62" rx="104" ry="70"/>
+    <rect class="panHit" x="-100" y="-14" width="200" height="164" fill="transparent"/>
+    <g class="feutre"><path d="M0 0L-83 70M0 0L83 70" stroke="#222" stroke-width="2" fill="none"/><path class="bowl" d="${bowl}" fill="${fill}" stroke="none"/></g>
+    <g class="tokens" clip-path="url(#clip${side})"></g>
+    <g class="feutre" fill="none" stroke-linecap="round"><path d="${bowl}" stroke="${col}" stroke-width="3"/><path d="M-91 70H91" stroke="#222" stroke-width="3.5"/></g>
+    <g class="chars">${charSVG(ch[0], -40)}${charSVG(ch[1], 40)}</g>
+    <text x="-40" y="124" class="hname">${HORM[ch[0]].name}</text><text x="40" y="124" class="hname">${HORM[ch[1]].name}</text>
+    <text x="0" y="143" class="pantitle ${isL ? 'r' : 'g'}">${sideName(side)}</text>`;
+}
+buildPan('L'); buildPan('R');
+const scEl = Object.fromEntries($$('.hchar').map(g => [g.dataset.h, g.querySelector('.sc')]));
+const panL = $('#panL'), panR = $('#panR'), beamG = $('#beam');
+
+// anneau : cercle pointillé + chevrons
+(() => {
+  const cx = 270, cy = 185, r = 130;
+  let s = `<circle id="ringC" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#999" stroke-width="4" stroke-dasharray="12 9" stroke-linecap="round"/>`;
+  for (let k = 0; k < 4; k++) {
+    const a = (k * 90 + 45) * Math.PI / 180, x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+    const deg = k * 90 + 45 + 90;
+    s += `<path class="chev" d="M-7,-8 L4,0 L-7,8" transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${deg})" fill="none" stroke="#999" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  $('#ringRot').innerHTML = s;
+})();
+const ringRot = $('#ringRot'), ringC = $('#ringC'), chevs = $$('.chev');
+
+// jauges
+const GAUGES = [
+  { h: 'adrenaline', k: 'adr', color: '#E4572E' },
+  { h: 'cortisol', k: 'cor', color: '#F2A48C' },
+  { h: 'ocytocine', k: 'oxy', color: '#3E9E6A' },
+  { h: 'endorphines', k: 'endo', color: '#9AD4AE' }
+];
+const LOCK = `<svg width="14" height="15" viewBox="0 0 14 15" aria-hidden="true"><rect x="1.5" y="6.5" width="11" height="7.5" rx="1.5" fill="#E4572E" stroke="#222" stroke-width="1.4"/><path d="M4 6.5V4.5a3 3 0 0 1 6 0v2" fill="none" stroke="#222" stroke-width="1.6"/></svg>`;
+$('#gauges').innerHTML = GAUGES.map(g => `<div class="gauge" data-h="${g.h}">
+  <button type="button" class="gname">${HORM[g.h].name}</button>
+  <div class="bar" role="meter" aria-label="Niveau d'${HORM[g.h].name.toLowerCase()} (illustratif)" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30"><div class="fill" style="background:${g.color}"></div></div>
+  <span class="tag ${g.h === 'ocytocine' ? 'r' : ''}">${g.h === 'ocytocine' ? LOCK + 'freinée' : g.h === 'adrenaline' ? '<span style="color:#8A6800">★ énergie</span>' : ''}</span></div>`).join('');
+const gEl = Object.fromEntries(GAUGES.map(g => {
+  const el = $(`.gauge[data-h="${g.h}"]`);
+  return [g.k, { el, fill: $('.fill', el), bar: $('.bar', el) }];
+}));
+
+// silhouette : zones
+const ZONES = [
+  { name: 'mâchoire', x: 106, y: 48, r: 12, lx: 121, ly: 40, a: 'start' },
+  { name: 'épaules', x: 86, y: 68, r: 13, lx: 66, ly: 60, a: 'end' },
+  { name: 'ventre', x: 122, y: 116, r: 17, lx: 150, ly: 140, a: 'middle' },
+  { name: 'bassin', x: 86, y: 136, r: 14, lx: 66, ly: 152, a: 'end' },
+  { name: 'périnée', x: 94, y: 152, r: 11, lx: 94, ly: 176, a: 'middle' }
+];
+$('#zones').innerHTML = ZONES.map(z => `<circle class="zhi" cx="${z.x}" cy="${z.y}" r="${z.r}"/>`).join('');
+$('#zlabs').innerHTML = ZONES.map(z => `<text class="zlab" x="${z.lx}" y="${z.ly}" text-anchor="${z.a}">${z.name} ✓</text>`).join('');
+const zhi = $$('.zhi'), zlab = $$('.zlab'), tls = $$('#woman .tl');
+
+$('#ficheIc').innerHTML = '';
+$('#noraIc').innerHTML = CHAR.noradrenaline;
+
+/* ---------------- État ---------------- */
+let mode = 'decouvrir', step = -1, finale = false, prog = 0, progTarget = 0;
+let storyGen = 0, zoneHold = false, storyTimers = [], flights = [], zoneTimers = [];
+const placed = new Set(), pending = new Set();
+let tg = {}; const lv = { adr: .3, cor: .3, oxy: .3, endo: .3, brake: 0, T: .35, t: 0 };
+const zt = [.35, .35, .35, .35, .35], zv = [.35, .35, .35, .35, .35];
+const beam = { a: 0, v: 0 };
+
+function computeTargets() {
+  let L = 0, Rt = 0, Rc = 0;
+  for (const id of placed) { const c = CARD[id]; if (c.grp === 'alerte') L += c.w; else if (c.grp === 'tete') Rt += c.w; else Rc += c.w; }
+  const t = clamp((Rt + Rc - L) / 8, -1, 1);
+  let adr = clamp(.3 + .075 * L - .04 * Rt - .02 * Rc, .05, 1);
+  const cor = clamp(.3 + .06 * L - .035 * Rt - .015 * Rc, .05, 1);
+  const brake = finale ? 0 : clamp((adr - .4) / .4);
+  const oxy = clamp(.3 + .045 * Rt + .04 * Rc, .05, 1) * (1 - .75 * brake);
+  const endo = clamp(oxy * .85 + .05, .05, 1);
+  const T = clamp(.35 + .07 * L - .025 * Rt - .08 * Rc);
+  if (finale) adr = .96;
+  return { t, adr, cor, oxy, endo, brake, T, L, R: Rt + Rc };
+}
+let lastStatus = '';
+function statusText() {
+  if (finale) return `<b class="r">Fin du travail</b> : l'adrénaline donne l'énergie de la poussée.`;
+  if (tg.t < -.15) return `La balance penche vers l'<b class="r">alerte</b> : le travail est freiné.`;
+  if (tg.t > .15) return `La balance penche vers l'<b class="g">accouchement</b> : le travail monte en puissance.`;
+  return placed.size ? 'La balance est équilibrée.' : 'La balance est équilibrée : rien n\'est encore posé.';
+}
+function recompute() {
+  tg = computeTargets();
+  const s = statusText();
+  if (s !== lastStatus) { lastStatus = s; $('#status').innerHTML = s; announce($('#status').textContent); }
+  document.getElementById('app').classList.toggle('finale', finale);
+  $('#nora').hidden = !finale;
+  if (!zoneHold) applyZones(tg.T, 140, false);
+}
+function applyZones(T, stagger, hi) {
+  zoneTimers.forEach(clearTimeout); zoneTimers = [];
+  ZONES.forEach((z, i) => {
+    const go = () => { zt[i] = T; if (hi) flashZone(i); };
+    if (!stagger) go(); else zoneTimers.push(setTimeout(go, i * stagger + (hi ? 250 : 0)));
+  });
+}
+function flashZone(i) {
+  for (const el of [zhi[i], zlab[i]]) { el.classList.remove('flash'); void el.getBBox(); el.classList.add('flash'); }
+}
+
+/* ---------------- Plateaux ---------------- */
+function renderPans(newId) {
+  for (const side of ['L', 'R']) {
+    const ids = [...placed].filter(id => CARD[id].side === side);
+    const n1 = Math.min(ids.length, 8), n2 = ids.length - n1;
+    const col = side === 'L' ? '#E4572E' : '#3E9E6A';
+    $(`#pan${side} .tokens`).innerHTML = ids.map((id, i) => {
+      const r2 = i >= 8, k = r2 ? i - 8 : i, n = r2 ? n2 : n1;
+      const x = (k - (n - 1) / 2) * 16, y = r2 ? 96 : 80, s = 10 + CARD[id].w * 2.5;
+      return `<g transform="translate(${x},${y})"><g class="${id === newId && !reduced ? 'pop' : ''}"><title>${CARD[id].label}</title>
+        <rect x="${-s / 2}" y="${-s / 2}" width="${s}" height="${s}" rx="3" fill="#fff" stroke="${col}" stroke-width="1.6"/>
+        <use href="#i-${id}" x="${-s / 2 + 1.2}" y="${-s / 2 + 1.2}" width="${s - 2.4}" height="${s - 2.4}"/></g></g>`;
+    }).join('');
+  }
+}
+function updateCard(id) {
+  const b = cardEl[id];
+  b.classList.toggle('placed', placed.has(id));
+  b.classList.toggle('pending', pending.has(id));
+  b.setAttribute('aria-pressed', placed.has(id));
+}
+const updateCards = () => CARDS.forEach(c => updateCard(c.id));
+
+/* ---------------- Échelle (cadre 16:9) ---------------- */
+let S = 1;
+function layout() {
+  const w = innerWidth, h = innerHeight;
+  const fit = w >= 760 && h >= 380 && w / h >= 1.15;
+  document.documentElement.classList.toggle('fit', fit);
+  S = fit ? Math.min(w / 1280, h / 720) : 1;
+  document.documentElement.style.setProperty('--s', S);
+}
+addEventListener('resize', layout); layout();
+
+/* ---------------- Annonces ---------------- */
+let toastT;
+function announce(msg, visual) {
+  const a = $('#announce'); a.textContent = ''; setTimeout(() => { a.textContent = msg; }, 30);
+  if (visual) {
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+}
+
+/* ---------------- Vol des cartes ---------------- */
+function makeGhost(card) {
+  const r = card.getBoundingClientRect();
+  const g = card.cloneNode(true);
+  g.classList.add('ghost'); g.classList.remove('placed', 'pending', 'dragging', 'armed', 'shake');
+  g.disabled = false; g.tabIndex = -1; g.setAttribute('aria-hidden', 'true');
+  const w = r.width / S, h = r.height / S;
+  Object.assign(g.style, { width: w + 'px', height: h + 'px', left: (r.left + r.width / 2 - w / 2) + 'px', top: (r.top + r.height / 2 - h / 2) + 'px', transform: `scale(${S})` });
+  g._w = w; g._h = h;
+  document.body.appendChild(g);
+  return g;
+}
+function fly(id, cb, ghost) {
+  const g = ghost || makeGhost(cardEl[id]);
+  const gr = g.getBoundingClientRect();
+  const br = $(`#pan${CARD[id].side} .bowl`).getBoundingClientRect();
+  const dx = br.left + br.width / 2 - (gr.left + gr.width / 2), dy = br.top + br.height * .3 - (gr.top + gr.height / 2);
+  const a = g.animate([{ transform: g.style.transform, opacity: 1 }, { transform: `translate(${dx}px,${dy}px) scale(${S * .3})`, opacity: .4 }],
+    { duration: ghost ? 300 : 650, easing: 'cubic-bezier(.45,0,.3,1)' });
+  const f = { g, a }; flights.push(f);
+  a.onfinish = () => { g.remove(); flights = flights.filter(x => x !== f); cb(); };
+}
+function flyBack(g, card, wrong) {
+  const cr = card.getBoundingClientRect(), gr = g.getBoundingClientRect();
+  const dx = cr.left + cr.width / 2 - (gr.left + gr.width / 2), dy = cr.top + cr.height / 2 - (gr.top + gr.height / 2);
+  const done = () => { g.remove(); card.classList.remove('dragging'); if (wrong) { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); } };
+  if (reduced) { done(); return; }
+  const a = g.animate([{ transform: g.style.transform }, { transform: `translate(${dx}px,${dy}px) scale(${S})` }], { duration: 280, easing: 'ease-out' });
+  a.onfinish = done;
+}
+function cancelFlights() {
+  flights.forEach(f => { f.a.cancel(); f.g.remove(); }); flights = [];
+  pending.clear();
+}
+function place(id, opts = {}) {
+  const { gen = null, after = null, ghost = null } = opts;
+  if (placed.has(id) || pending.has(id)) return;
+  pending.add(id); updateCard(id);
+  const land = () => {
+    pending.delete(id);
+    if (gen !== null && gen !== storyGen) { updateCard(id); return; }
+    placed.add(id); cardEl[id].classList.remove('dragging');
+    recompute(); renderPans(id); updateCard(id);
+    if (after) after();
+  };
+  if (reduced) { if (ghost) ghost.remove(); land(); } else fly(id, land, ghost);
+}
+function removeCard(id) { placed.delete(id); recompute(); renderPans(); updateCard(id); }
+
+/* ---------------- Clic / clavier sur les cartes ---------------- */
+let suppressClick = false;
+for (const b of Object.values(cardEl)) {
+  b.addEventListener('click', () => {
+    if (suppressClick) { suppressClick = false; return; }
+    if (mode !== 'experimenter') return;
+    const id = b.dataset.id, c = CARD[id];
+    if (placed.has(id)) { removeCard(id); announce(`« ${c.label} » retirée de la balance.`); }
+    else if (!pending.has(id)) { place(id); announce(`« ${c.label} » posée sur le plateau ${sideName(c.side)}.`); }
+  });
+  b.addEventListener('pointerdown', onDown);
+  b.addEventListener('pointermove', onMove);
+  b.addEventListener('pointerup', onUp);
+  b.addEventListener('pointercancel', onCancel);
+  b.addEventListener('touchmove', e => { if (drag && drag.armed) e.preventDefault(); }, { passive: false });
+  b.addEventListener('contextmenu', e => { if (drag) e.preventDefault(); });
+}
+
+/* ---------------- Glisser-déposer (Pointer Events) ---------------- */
+let drag = null;
+function hitSide(x, y) {
+  for (const s of ['L', 'R']) {
+    const r = $(`#pan${s} .panHit`).getBoundingClientRect(), m = 22 * S;
+    if (x >= r.left - m && x <= r.right + m && y >= r.top - m && y <= r.bottom + m) return s;
+  }
+  return null;
+}
+function setPanHover(side, ok) {
+  for (const s of ['L', 'R']) {
+    const p = $('#pan' + s);
+    p.classList.toggle('ok', side === s && ok);
+    p.classList.toggle('bad', side === s && !ok);
+  }
+}
+function onDown(e) {
+  const card = e.currentTarget;
+  if (mode !== 'experimenter' || card.disabled) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const id = card.dataset.id;
+  if (placed.has(id) || pending.has(id)) return;
+  drag = { card, id, x0: e.clientX, y0: e.clientY, pid: e.pointerId, started: false, armed: e.pointerType !== 'touch', ghost: null };
+  if (e.pointerType === 'touch') {
+    drag.timer = setTimeout(() => { if (drag && !drag.started) { drag.armed = true; card.classList.add('armed'); } }, 180);
+  }
+  try { card.setPointerCapture(e.pointerId); } catch (_) {}
+}
+function onMove(e) {
+  if (!drag || e.pointerId !== drag.pid) return;
+  const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if (!drag.started) {
+    if (Math.hypot(dx, dy) < 6) return;
+    if (!drag.armed) { endDrag(); return; }
+    drag.started = true;
+    drag.ghost = makeGhost(drag.card);
+    drag.card.classList.add('dragging');
+    $('#pan' + CARD[drag.id].side).classList.add('target');
+  }
+  const g = drag.ghost;
+  g.style.left = (e.clientX - g._w / 2) + 'px';
+  g.style.top = (e.clientY - g._h / 2) + 'px';
+  g.style.transform = `scale(${S}) rotate(-4deg)`;
+  const side = hitSide(e.clientX, e.clientY);
+  setPanHover(side, side === CARD[drag.id].side);
+  e.preventDefault();
+}
+function onUp(e) {
+  if (!drag || e.pointerId !== drag.pid) return;
+  const d = drag;
+  if (d.started) {
+    suppressClick = true; setTimeout(() => { suppressClick = false; }, 80);
+    const side = hitSide(e.clientX, e.clientY), c = CARD[d.id];
+    if (side === c.side) {
+      place(d.id, { ghost: d.ghost });
+      announce(`« ${c.label} » posée sur le plateau ${sideName(c.side)}.`);
+    } else if (side) {
+      flyBack(d.ghost, d.card, true);
+      announce(`« ${c.label} » va sur le plateau ${sideName(c.side)}.`, true);
+    } else flyBack(d.ghost, d.card, false);
+  }
+  endDrag();
+}
+function onCancel() { if (drag && drag.started) flyBack(drag.ghost, drag.card, false); endDrag(); }
+function endDrag() {
+  if (!drag) return;
+  clearTimeout(drag.timer);
+  drag.card.classList.remove('armed');
+  try { drag.card.releasePointerCapture(drag.pid); } catch (_) {}
+  setPanHover(null);
+  $$('.pan').forEach(p => p.classList.remove('target'));
+  drag = null;
+}
+
+/* ---------------- Modes et visite guidée ---------------- */
+function clearStory() {
+  storyGen++; cancelFlights();
+  storyTimers.forEach(clearTimeout); storyTimers = [];
+}
+function setMode(m) {
+  mode = m;
+  document.documentElement.dataset.mode = m;
+  $$('.modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  Object.values(cardEl).forEach(b => { b.disabled = m !== 'experimenter'; });
+  $('#storyBox').hidden = m !== 'decouvrir';
+  $('#expBox').hidden = m === 'decouvrir';
+  $('#trayNote').hidden = m !== 'decouvrir';
+  clearStory();
+  placed.clear(); finale = false; zoneHold = false; prog = 0; progTarget = 0;
+  if (m === 'decouvrir') { step = -1; goStep(0); }
+  else { recompute(); renderPans(); updateCards(); announce('Mode Expérimenter : compose ta propre situation.'); }
+}
+function goStep(n) {
+  const forward = n === step + 1;
+  step = n; clearStory();
+  const gen = storyGen, s = STEPS[n];
+  const target = STEPS.slice(0, n + 1).flatMap(x => x.cards);
+  for (const id of [...placed]) if (!target.includes(id)) placed.delete(id);
+  finale = !!s.finale; progTarget = s.prog;
+  if (!forward) prog = Math.min(prog, s.prog);
+  const fresh = target.filter(id => !placed.has(id));
+  zoneHold = n === 3;
+  if (forward && !reduced && fresh.length) {
+    let left = fresh.length;
+    fresh.forEach((id, i) => storyTimers.push(setTimeout(() => {
+      if (gen === storyGen) place(id, { gen, after: () => { if (--left === 0) stepLanded(n, gen); } });
+    }, 450 + i * 520)));
+  } else { fresh.forEach(id => placed.add(id)); stepLanded(n, gen); }
+  recompute(); renderPans(); updateCards(); renderStory();
+}
+function stepLanded(n, gen) {
+  if (gen !== storyGen) return;
+  if (n === 3) { zoneHold = false; tg = computeTargets(); applyZones(tg.T, reduced ? 450 : 750, true); }
+}
+function renderStory() {
+  const s = STEPS[step];
+  $('#stepNum').textContent = `${step + 1} / ${STEPS.length}`;
+  $('#storyTitle').innerHTML = `<span class="hl">${s.title}</span>`;
+  $('#storyText').innerHTML = s.html; $('#storyText').scrollTop = 0;
+  $('#prev').disabled = step === 0;
+  $('#next').textContent = step === STEPS.length - 1 ? 'Expérimenter →' : 'Suivant →';
+  $$('#dots button').forEach((d, i) => { if (i === step) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current'); });
+}
+$('#dots').innerHTML = STEPS.map((s, i) => `<button type="button" aria-label="Étape ${i + 1} : ${s.title}"></button>`).join('');
+$$('#dots button').forEach((d, i) => d.addEventListener('click', () => goStep(i)));
+$('#prev').addEventListener('click', () => { if (step > 0) goStep(step - 1); });
+$('#next').addEventListener('click', () => { if (step < STEPS.length - 1) goStep(step + 1); else setMode('experimenter'); });
+$$('.modes button').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode !== mode) setMode(b.dataset.mode); }));
+$('#reset').addEventListener('click', () => {
+  cancelFlights(); placed.clear(); prog = 0; recompute(); renderPans(); updateCards();
+  announce('La balance est vidée.', true);
+});
+document.addEventListener('keydown', e => {
+  if (document.querySelector('dialog[open]') || mode !== 'decouvrir') return;
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'ArrowRight' && step < STEPS.length - 1) { e.preventDefault(); goStep(step + 1); }
+  else if (e.key === 'ArrowLeft' && step > 0) { e.preventDefault(); goStep(step - 1); }
+});
+
+/* ---------------- Fiches ---------------- */
+let opener = null;
+function openFiche(h, from) {
+  opener = from || document.activeElement;
+  $('#ficheT').textContent = HORM[h].name;
+  $('#ficheX').textContent = HORM[h].text;
+  $('#ficheIc').innerHTML = CHAR[h].replace('class="gold"', 'class="gold" style="display:none"');
+  $('#fiche').showModal();
+}
+for (const d of $$('dialog')) {
+  d.addEventListener('click', e => { if (e.target === d) d.close(); });
+  d.addEventListener('close', () => { if (opener && opener.focus) opener.focus(); opener = null; });
+}
+$$('.hchar').forEach(g => {
+  g.addEventListener('click', () => openFiche(g.dataset.h, g));
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFiche(g.dataset.h, g); } });
+});
+$$('.gauge').forEach(el => $('.gname', el).addEventListener('click', e => openFiche(el.dataset.h, e.currentTarget)));
+$('#nora').addEventListener('click', e => openFiche('noradrenaline', e.currentTarget));
+$('#btnSources').addEventListener('click', e => { opener = e.currentTarget; $('#sources').showModal(); });
+
+/* ---------------- Animation ---------------- */
+const hex = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+const mix = (a, b, t) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`; };
+const ut = { phase: 'rest', time: 0, dur: 2, amp: .5, I: 0 };
+const samples = [];
+let last = performance.now(), sampAcc = 0, ariaAcc = 0, ringA = 0, boost = 0, lastDash = '', lastCap = '', lastPhase = '', lastProgState = '';
+const eff = () => clamp(lv.oxy * (1 - .4 * lv.T) * 1.15);
+function nextPhase() {
+  const e = eff();
+  if (ut.phase === 'rest') { ut.phase = 'contract'; ut.dur = lerp(1.3, 2.8, e) + (1 - e) * rand(-.3, .7); ut.amp = clamp(.18 + .82 * e + (1 - e) * rand(-.1, .12), .12, 1); }
+  else { ut.phase = 'rest'; ut.dur = Math.max(.3, lerp(.4, 3.4, e) + (1 - e) * rand(-.1, .45)); }
+  ut.time = 0;
+}
+function drawTrace() {
+  const n = 140, dx = 170 / (n - 1), off = n - samples.length;
+  let r = '', b = '';
+  for (let i = 1; i < samples.length; i++) {
+    const p = samples[i - 1], q = samples[i];
+    const seg = `M${((i - 1 + off) * dx).toFixed(1)} ${(40 - p.v * 34).toFixed(1)}L${((i + off) * dx).toFixed(1)} ${(40 - q.v * 34).toFixed(1)}`;
+    if (q.c) r += seg; else b += seg;
+  }
+  $('#trR').setAttribute('d', r); $('#trB').setAttribute('d', b);
+}
+const uG = $('#uG'), uShape = $('#uShape'), uWR = $('#uWavesR'), uWB = $('#uWavesB'), baby = $('#baby');
+const shoulders = $('#shoulders'), brow = $('#brow'), eyeO = $('#eyeO'), eyeC = $('#eyeC'), mouth = $('#mouth'), clench = $('#clench'), breathG = $('#breath');
+const capVic = $('#capVic'), capVer = $('#capVer');
+
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const k = reduced ? 1 - Math.exp(-dt * 6) : 1 - Math.exp(-dt * 2.2);
+  for (const h of ['adr', 'cor', 'oxy', 'endo', 'brake', 'T', 't']) lv[h] += (tg[h] - lv[h]) * k;
+
+  // fléau
+  const target = tg.t * 20;
+  if (reduced) { beam.a = target; beam.v = 0; }
+  else { const acc = (target - beam.a) * 26 - beam.v * 5.2; beam.v += acc * dt; beam.a += beam.v * dt; }
+  const ar = beam.a * Math.PI / 180, c = Math.cos(ar) * 170, s = Math.sin(ar) * 170;
+  beamG.setAttribute('transform', `rotate(${beam.a.toFixed(2)} 270 95)`);
+  panL.setAttribute('transform', `translate(${(270 - c).toFixed(1)},${(95 - s).toFixed(1)})`);
+  panR.setAttribute('transform', `translate(${(270 + c).toFixed(1)},${(95 + s).toFixed(1)})`);
+
+  // personnages
+  const pulse = finale && !reduced ? 1 + .05 * Math.sin(now / 160) : 1;
+  const sc = (h, v, p = 1) => scEl[h].setAttribute('transform', `scale(${((.62 + v * .78) * p).toFixed(3)})`);
+  sc('adrenaline', lv.adr, pulse); sc('cortisol', lv.cor); sc('ocytocine', lv.oxy); sc('endorphines', lv.endo);
+
+  // anneau
+  const t = lv.t;
+  const col = t < 0 ? mix('#9A9A9A', '#E4572E', clamp(-t / .45)) : mix('#9A9A9A', '#3E9E6A', clamp(t / .45));
+  if (tg.t < -.15) boost = Math.min(2, boost + dt * .2); else boost = Math.max(0, boost - dt * .8);
+  const speed = t < 0 ? 18 + 150 * (-t) * (1 + boost) : 18 - 6 * t;
+  if (!reduced) ringA = (ringA + speed * dt) % 360;
+  const amp = 1 + .07 * Math.max(0, t);
+  ringRot.setAttribute('transform', `rotate(${ringA.toFixed(1)} 270 185) translate(270 185) scale(${amp.toFixed(3)}) translate(-270 -185)`);
+  ringC.setAttribute('stroke', col); ringC.setAttribute('stroke-width', (4 + 2.5 * Math.max(0, t)).toFixed(2));
+  chevs.forEach(p => p.setAttribute('stroke', col));
+  const dash = t < -.1 ? '9 8' : t > .1 ? '30 14' : '12 9';
+  if (dash !== lastDash) { ringC.setAttribute('stroke-dasharray', dash); lastDash = dash; }
+  capVic.setAttribute('opacity', clamp((-t - .1) / .3).toFixed(2));
+  capVer.setAttribute('opacity', clamp((t - .1) / .3).toFixed(2));
+
+  // utérus
+  ut.time += dt; if (ut.time >= ut.dur) nextPhase();
+  const e = eff(), p = ut.time / ut.dur, base = (1 - e) * .2;
+  ut.I = ut.phase === 'contract' ? base + ut.amp * Math.pow(Math.sin(Math.PI * p), 1.3) * (1 - base) : base * (.92 + .08 * Math.sin(now / 300));
+  uG.setAttribute('transform', `translate(85 58) scale(${(1 - .11 * ut.I).toFixed(3)} ${(1 - .05 * ut.I).toFixed(3)}) translate(-85 -58)`);
+  uShape.setAttribute('fill', mix('#F3A79B', '#E06A55', clamp(ut.I)));
+  uShape.setAttribute('stroke-width', (3 + 2 * ut.I).toFixed(2));
+  uWR.setAttribute('opacity', ut.phase === 'contract' ? clamp(ut.I * 1.6).toFixed(2) : 0);
+  uWR.setAttribute('transform', reduced ? '' : `translate(0 0)`);
+  $$('path', uWR).forEach((pth, i) => pth.setAttribute('transform', reduced ? '' : `translate(${(i ? -1 : 1) * ut.I * 5} 0)`));
+  uWB.setAttribute('opacity', ut.phase === 'rest' ? (.35 + .55 * e).toFixed(2) : 0);
+  if (!reduced) uWB.setAttribute('transform', `translate(${(Math.sin(now / 700) * 2).toFixed(2)} 0)`);
+  baby.setAttribute('transform', `translate(0 ${(prog * 16).toFixed(1)})`);
+  if (ut.phase !== lastPhase) {
+    lastPhase = ut.phase;
+    const up = $('#uPhase');
+    up.textContent = ut.phase === 'contract' ? 'contraction' : 'détente';
+    up.className = ut.phase === 'contract' ? 'r' : 'b';
+  }
+  sampAcc += dt;
+  while (sampAcc >= .1) { sampAcc -= .1; samples.push({ v: ut.I, c: ut.phase === 'contract' }); if (samples.length > 140) samples.shift(); drawTrace(); }
+
+  // silhouette
+  const kz = 1 - Math.exp(-dt * (reduced ? 8 : 2.6));
+  for (let i = 0; i < 5; i++) zv[i] += (zt[i] - zv[i]) * kz;
+  shoulders.setAttribute('transform', `translate(0 ${(-7 * zv[1]).toFixed(2)})`);
+  tls.forEach((l, i) => l.setAttribute('opacity', clamp((zv[i] - .4) / .35).toFixed(2)));
+  const j = zv[0];
+  brow.setAttribute('d', `M98 ${(27 - 2.5 * j).toFixed(2)}L107 ${(29 + 1.5 * j).toFixed(2)}`);
+  eyeO.setAttribute('opacity', j > .5 ? 1 : 0); eyeC.setAttribute('opacity', j > .5 ? 0 : 1);
+  const cl = clamp((j - .5) / .25);
+  mouth.setAttribute('d', `M101 48Q105 ${(48 + 3 * (1 - j)).toFixed(2)} 109 ${(48 - .5 * (1 - j)).toFixed(2)}`);
+  mouth.setAttribute('opacity', (1 - cl).toFixed(2)); clench.setAttribute('opacity', cl.toFixed(2));
+  const avg = zv.reduce((a, b) => a + b, 0) / 5;
+  breathG.setAttribute('opacity', clamp(1 - avg * 2.2).toFixed(2));
+  const cap = avg > .58 ? 'Crispée' : avg < .3 ? 'Détendue' : 'Un peu tendue';
+  if (cap !== lastCap) { lastCap = cap; const wc = $('#womanCap'); wc.textContent = cap; wc.className = 'cap ' + (cap === 'Crispée' ? 'r' : cap === 'Détendue' ? 'g' : ''); }
+
+  // progression
+  if (mode === 'decouvrir') prog += (progTarget - prog) * (1 - Math.exp(-dt * .9));
+  else if (e > .55) prog = Math.min(.9, prog + (e - .5) * .035 * dt);
+  $('#progFill').style.width = (prog * 100).toFixed(1) + '%';
+  $('#progBaby').style.left = (prog * 100).toFixed(1) + '%';
+  const ps = finale ? ['La naissance est toute proche', 'g'] : e > .55 ? ['Le travail avance', 'g'] : e < .35 ? ['Le travail stagne', 'r'] : ['Le travail avance doucement', ''];
+  if (ps[0] !== lastProgState) { lastProgState = ps[0]; const el = $('#progState'); el.textContent = ps[0]; el.className = ps[1]; }
+
+  // jauges
+  for (const g of GAUGES) gEl[g.k].fill.style.width = (clamp(lv[g.k]) * 100).toFixed(1) + '%';
+  gEl.oxy.el.classList.toggle('braked', lv.brake > .3 && !finale);
+  gEl.adr.el.classList.toggle('energy', finale);
+  ariaAcc += dt;
+  if (ariaAcc > .4) {
+    ariaAcc = 0;
+    for (const g of GAUGES) gEl[g.k].bar.setAttribute('aria-valuenow', Math.round(clamp(lv[g.k]) * 100));
+    $('#progBar').setAttribute('aria-valuenow', Math.round(prog * 100));
+  }
+  requestAnimationFrame(frame);
+}
+
+setMode('decouvrir');
+for (const h of Object.keys(lv)) lv[h] = tg[h];
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
